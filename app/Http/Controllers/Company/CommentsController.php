@@ -2,67 +2,36 @@
 
 namespace App\Http\Controllers\Company;
 
-use App\Models\User;
-use App\Models\Industry;
-use App\Models\City;
+
 use App\Models\Company;
-use App\Models\Vacancy;
-use App\Models\Resume;
-use App\Models\Comment;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\URL;
-use App\Models\News;
 use View;
 use Input;
 use Validator;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
-//use Request;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Redirect;
+
 
 class CommentsController extends Controller
 {
-    public function showComments($id, Guard $auth){
 
-
-//        if(Request::ajax()){
-//            dd('q');
-//            if($_REQUEST == null){
-//                $comments = Comment::where('company_id', '=', $id)->get();
-//                dd('ddd');
-//            }else{
-//                dd('d');
-//                $com = new Comment();
-//                $com->users_id = auth()->user()->user_id;
-//                $com->company_id = $id;
-//                $com->comment = $_REQUEST[''];
-//                $com->save();
-//                $comments = Comment::where('company_id', '=', $id)->get();
-//            }
-//            return view('newDesign.company.comments',['comments' => $comments, 'company' =>$company]);
-//        }
-
-    }
-
-    public function updateComments($id, Request $request){
-        $comments = Comment::where('company_id', '=', $id)->get();
-        $company = Company::find($id);
-        //dd($request->all());
-        return view('newDesign.company.comments',['comments' => $comments, 'company' =>$company]);
-    }
     /**
      * Display a listing of the resource.
      *
      * @return Response
      */
-    public function index($company)
+    public function index($company, Guard $auth)
     {
-        $company = Company::find($company);
-        $comments = $company->comments;
-        return view('newDesign.company.comments',['comments' => $comments, 'company' =>$company]);
+        if(auth()->user()){
+            $company = Company::find($company);
+            $comments = $company->comments;
+            return view('newDesign.company.comments',['comments' => $comments, 'company' =>$company]);
+        }else{
+            return "Ви не зареєстровані";
+        }
+
     }
 
     /**
