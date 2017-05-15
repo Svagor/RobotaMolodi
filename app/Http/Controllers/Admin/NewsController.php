@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\News;
+use Illuminate\Support\Facades\Input;
 
 use App\Http\Requests;
-use App\Models\News;
+
 
 class NewsController extends Controller
 {
@@ -56,6 +58,9 @@ class NewsController extends Controller
          */
         $newsOne = News::find($id);
         if ($newsOne->validateForm($request->all())) {
+            if(Input::file('image')) {
+                $newsOne->deletePicture();
+            }
             $this->helperSave($newsOne,$request);
             Session::flash('flash_message', 'news successfully added!');
             return redirect()->route('admin.news.index');
@@ -75,10 +80,13 @@ class NewsController extends Controller
         Session::flash('flash_message', 'news successfully deleted!');
         return redirect()->route('admin.news.index');
     }
-    private function helperSave($news,$request){
-        $news->saveImage($request);
-        $input = $request->all();
-        $news->fill($input)->save();
+    
+    public function helperSave($news,$request){
+        $news->fill($request->all());
+        News::saveImg($news);
+        $news->save();
     }
+
+
 
 }

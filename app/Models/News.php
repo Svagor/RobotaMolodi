@@ -4,13 +4,13 @@ namespace App\Models;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 class News extends Model
 {
     const NOT_PICTURE = 'Not picture';
     const NEWS_ON_MAIN_PAGE=10;
-    private $path = 'image/uploads/news/';
+    private $imagePath = 'image/uploads/news/';
     private $errorsMessages;
 
     private $rules = array(
@@ -19,30 +19,24 @@ class News extends Model
         'image' => 'sometimes|image|max:10240',
     );
     protected $fillable = [
-        'id',
         'name',
         'description',
         'img',
         'created_at',
         'updated_at',
     ];
-    public function saveImage(Request $request)
-    {
-        if (!$this->img && $request->hasFile('image')) {
-            $pictureName = $this->fileSave($request);
-        } else if ($this->img && $request->hasFile('image')) {
-            $pictureName = $this->fileSave($request);
-            $this->deletePicture();
-        } else if ($this->img && !$request->hasFile('image')) {
-            $pictureName = self::NOT_PICTURE;
-            $this->deletePicture();
-        } else {
-            $pictureName = self::NOT_PICTURE;
-        }
-        $this->img = $pictureName;
-    }
 
-    private function deletePicture()
+    public static function saveImg($news){
+        if(Input::file('image')) {
+            $file = Input::file('image');
+            $filename = time() . '-' . $file->getClientOriginalName();
+            Storage::makeDirectory($news->imagePath);
+            $file->move($news->imagePath, $filename);
+            $news->img = $filename;
+        }
+    }
+    
+    public function deletePicture()
     {
         $exists = Storage::disk('local')->has($this->getImage());
         if ($exists)
@@ -54,16 +48,6 @@ class News extends Model
     {
         $this->deletePicture();
         $this->delete();
-    }
-
-    private function fileSave($request)
-    {
-        $file = $request->file('image');
-        $pictureName = $file->getClientOriginalName();
-        $timestamp = time();
-        $pictureName = $timestamp . "_" . $pictureName;
-        $file->move($this->path, $pictureName);
-        return $pictureName;
     }
 
     public function validateForm($news)
@@ -78,7 +62,7 @@ class News extends Model
 
     public function getPath()
     {
-        return $this->path;
+        return $this->imagePath;
     }
 
     public function getErrorsMessages()
